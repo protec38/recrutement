@@ -2,6 +2,7 @@ from django.contrib import admin
 
 from . import models
 from . import forms
+from .models import Candidate
 
 
 class AnswerInline(admin.TabularInline):
@@ -9,7 +10,7 @@ class AnswerInline(admin.TabularInline):
 
 
 class CandidateAdmin(admin.ModelAdmin):
-    form = forms.CandidateForm
+    model = Candidate
     fields = ['first_name', 'last_name', 'birth_date', 'email']
     inlines = [AnswerInline]
 

@@ -1,21 +1,36 @@
 from django.forms import inlineformset_factory
 from django.shortcuts import render
+from django.urls import reverse_lazy
 
 from django.views.generic import FormView, CreateView
 
-from .forms import CandidateForm, AnswerForm
-from .models import Question, Candidate, Answer
+from .forms import DiplomaFormset
+from .models import Candidate, Diploma
 
 
-class CandidateFormView(CreateView):
-    template_name = 'candidates/candidate.html'
-    form_class = CandidateForm
-    
+class CandidateCreateView(CreateView):
+    model = Candidate
+    fields = ['first_name', 'last_name', 'birth_date', 'email']
+    success_url = reverse_lazy('candidates:questions')
+
     def get_context_data(self, **kwargs):
-        context = super(CandidateFormView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
 
-        initial = [{'question': q.text} for q in Question.objects.all()]
-        AnswerInlineFormset = inlineformset_factory(Candidate, Answer, form=AnswerForm, can_delete=False, extra=len(initial))
-        context['answers_formset'] = AnswerInlineFormset(initial=initial)
+        if self.request.POST:
+            context['diploma_formset'] = DiplomaFormset(self.request.POST, self.request.FILES)
+        else:
+            context['diploma_formset'] = DiplomaFormset()
+
         return context
 
+    def form_valid(self, form):
+        diploma_formset = DiplomaFormset(self.request.POST, self.request.FILES)
+
+        if not diploma_formset.is_valid() or not form.is_valid():
+            return self.form_invalid(form)
+
+        candidate = form.save()
+        diploma_formset.instance = candidate
+        diploma_formset.save()
+
+        return super().form_valid(form)

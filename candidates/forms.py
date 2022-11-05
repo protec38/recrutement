@@ -1,21 +1,6 @@
 from django import forms
-from django.forms import TextInput, CharField
+from django.forms import TextInput, CharField, inlineformset_factory
 
-from candidates.models import Candidate, Answer, Question
+from candidates.models import Candidate, Answer, Question, Diploma
 
-
-class CandidateForm(forms.ModelForm):
-    class Meta:
-        model = Candidate
-        fields = ['first_name', 'last_name', 'birth_date', 'email']
-
-
-class AnswerForm(forms.ModelForm):
-    class Meta:
-        model = Answer
-        fields = ['question', 'text']
-
-    question = CharField()
-
-
-# AnswerInlineFormset = forms.inlineformset_factory(Candidate, Answer, form=AnswerForm, can_delete=False, extra=0)
+DiplomaFormset = inlineformset_factory(Candidate, Diploma, fields=['type', 'date', 'diploma_file', 'continuous_training_date'])

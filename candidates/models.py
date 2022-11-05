@@ -6,7 +6,6 @@ class Candidate(models.Model):
     last_name = models.CharField(max_length=100)
     birth_date = models.DateField()
     email = models.EmailField()
-    answers = models.ManyToManyField('Question', through='Answer')
 
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
@@ -36,5 +35,5 @@ class Question(models.Model):
 
 class Answer(models.Model):
     candidate = models.ForeignKey(Candidate, on_delete=models.CASCADE)
-    question = models.ForeignKey(Question, on_delete=models.CASCADE)
-    text = models.CharField(max_length=100)
+    question = models.CharField(max_length=200)
+    text = models.TextField()

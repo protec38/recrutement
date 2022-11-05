@@ -8,12 +8,19 @@
     <title>Document</title>
 </head>
 <body>
-<table>
-    {{ form.as_table }}
-</table>
-{% for answer_form in answers_formset %}
-    {{ answer_form.question.value }}
-    {{ answer_form.text }}
-{%  endfor %}
+<form action="{% url 'candidates:add' %}" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+
+    {{ diploma_formset.management_form }}
+    <table>
+        {% for form in diploma_formset %}
+        {{  form }}
+        {%  endfor %}
+    </table>
+
+
+    <input type="submit">
+</form>
 </body>
 </html>
