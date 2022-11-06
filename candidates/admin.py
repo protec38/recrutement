@@ -9,10 +9,14 @@ class AnswerInline(admin.TabularInline):
     model = models.Answer
 
 
+class DiplomaInline(admin.TabularInline):
+    model = models.Diploma
+
+
 class CandidateAdmin(admin.ModelAdmin):
     model = Candidate
-    fields = ['first_name', 'last_name', 'birth_date', 'email']
-    inlines = [AnswerInline]
+    fields = ['first_name', 'last_name', 'birth_date', 'email', 'question1', 'question2', 'question3']
+    inlines = [DiplomaInline]
 
 
 admin.site.register(models.Candidate, CandidateAdmin)
