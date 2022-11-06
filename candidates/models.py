@@ -21,7 +21,7 @@ class Diploma(models.Model):
     candidate = models.ForeignKey(Candidate, on_delete=models.CASCADE, related_name='diploma')
     type = models.CharField(choices=DIPLOMA_CHOICES, max_length=10)
     date = models.DateField()
-    continuous_training_date = models.DateField()
+    continuous_training_date = models.DateField(blank=True, null=True)
     diploma_file = models.FileField()
     continuous_training_file = models.FileField
 

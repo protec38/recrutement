@@ -12,11 +12,8 @@
     {% csrf_token %}
     {{ form.as_p }}
 
-    {{ diploma_formset.management_form }}
     <table>
-        {% for form in diploma_formset %}
-        {{  form }}
-        {%  endfor %}
+        {{ diploma_formset.as_table }}
     </table>
 
 
