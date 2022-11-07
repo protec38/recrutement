@@ -11,6 +11,9 @@ class QuestionCandidateInline(admin.TabularInline):
     readonly_fields = ['question', 'text']
     can_delete = False
 
+    def has_add_permission(self, request, obj):
+        return False
+
 
 class DiplomaInline(admin.TabularInline):
     model = models.Diploma
