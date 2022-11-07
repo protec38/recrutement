@@ -1,23 +1,19 @@
-<!doctype html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
-</head>
-<body>
-<form action="{% url 'candidates:questions' %}" method="post">
-    {% csrf_token %}
-    {{ formset.management_form }}
-    {% for form in formset %}
-        <label for="{{ form.text.id_for_label }}">{{ form.question.value }}</label>{{ form.text }}{{ form.text.errors }}
-        {% for hidden in form.hidden_fields %}
-            {{ hidden }}
+{% extends './base.html' %}
+
+{% block title %}Questionnaire de motivation{% endblock %}
+
+{% block content %}
+<h1>Questionnaire de motivation</h1>
+    <p>Afin de nous permettre de mieux vous connaître, merci de répondre à ces quelques questions.</p>
+    <form action="{% url 'candidates:questions' %}" method="post">
+        {% csrf_token %}
+        {{ formset.management_form }}
+        {% for form in formset %}
+            <label for="{{ form.text.id_for_label }}">{{ form.question.value }}</label>{{ form.text }}{{ form.text.errors }}
+            {% for hidden in form.hidden_fields %}
+                {{ hidden }}
+            {% endfor %}
         {% endfor %}
-    {% endfor %}
-    <input type="submit">
-</form>
-</body>
-</html>
+        <input type="submit">
+    </form>
+{% endblock %}

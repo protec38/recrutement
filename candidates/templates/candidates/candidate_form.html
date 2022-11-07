@@ -1,23 +1,22 @@
-<!doctype html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
-</head>
-<body>
-<form action="{% url 'candidates:add' %}" method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
+{% extends "./base.html" %}
 
-    <table>
-        {{ diploma_formset.as_table }}
-    </table>
+{% block title %}Nouveau candidat{% endblock %}
 
+{% block content %}
+<h1>Déposez ma candidature</h1>
+    <p>Pour devenir bénévole à la Protection Civile de l'Isère, merci de remplir le formulaire suivant avec quelques infos essentielles</p>
+    <form action="{% url 'candidates:add' %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <h2>Informations personnelles</h2>
+        {{ form.as_p }}
 
-    <input type="submit">
-</form>
-</body>
-</html>
+        <h2>Diplômes</h2>
+        <table>
+            {{ diploma_formset.management_form }}
+            {% for diploma_form in diploma_formset %}
+                {{ diploma_form.as_table }}
+            {% endfor %}
+        </table>
+        <input type="submit">
+    </form>
+{% endblock %}

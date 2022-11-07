@@ -40,7 +40,7 @@ class Diploma(models.Model):
     type = models.CharField(choices=DIPLOMA_CHOICES, max_length=10, verbose_name=_('Type'), help_text="Seuls les diplômes reconnus par le ministère de l'Intérieur sont disponibles")
     date = models.DateField(verbose_name=_("Date d'obtention"))
     continuous_training_date = models.DateField(blank=True, null=True, verbose_name=_("Dernière formation continue"), help_text="Date de la dernière formation continue, si applicable")
-    diploma_file = models.FileField(verbose_name=_('Diplôme'))
+    diploma_file = models.FileField(verbose_name=_('Diplôme'), help_text=_('Fichiers acceptés *.pdf, *.jpg. Taille maximale XXX Go'))
     continuous_training_file = models.FileField(blank=True, null=True, verbose_name=_('Attestation de formation continue'))
 
     class Meta:
