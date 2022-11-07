@@ -15,14 +15,23 @@ class Candidate(models.Model):
 
 
 DIPLOMA_CHOICES = [
-    ('PSC1', 'Prévention et Secours Civiques de niveau 1'),
-    ('SST', 'Sauveteur Secouriste du Travail'),
-    ('PSE1', 'Premiers Secours en Equipe de niveau 1'),
-    ('PSE2', 'Premiers Secours en Equipe de niveau 2'),
-    ('PAE FPS', "Pédagogie Appliquée à l'emploi de Formateur Premiers Secours"),
-    ('PAE FPSC', "Pédagogie Appliquée à l'emploi de Formateur Prévention et Secours Civiques"),
-    ('PAE FF', "Pédagogie Appliquée à l'emploi de Formateur de Formateur"),
-    ('CEAF', "Conception et Encadrement d'Activité de Formation"),
+    ('Secourisme grand public', (
+            ('PSC1', 'PSC1 - Prévention et Secours Civiques de niveau 1'),
+            ('SST', 'SST - Sauveteur Secouriste du Travail')
+        )
+    ),
+    ('Secours opérationnel', (
+            ('PSE1', 'PSE1 - Premiers Secours en Equipe de niveau 1'),
+            ('PSE2', 'PSE2 - Premiers Secours en Equipe de niveau 2'),
+        )
+    ),
+    ('Formation', (
+            ('PAE FPS', "PAE FPS - Pédagogie Appliquée à l'emploi de Formateur Premiers Secours"),
+            ('PAE FPSC', "PAE FPSC - Pédagogie Appliquée à l'emploi de Formateur Prévention et Secours Civiques"),
+            ('PAE FF', "PAE FF - Pédagogie Appliquée à l'emploi de Formateur de Formateur"),
+            ('CEAF', "CEAF - Conception et Encadrement d'Activité de Formation"),
+        )
+    )
 ]
 
 
