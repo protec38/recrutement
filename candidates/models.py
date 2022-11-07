@@ -29,14 +29,14 @@ class Diploma(models.Model):
     continuous_training_file = models.FileField
 
 
-class Question(models.Model):
+class QuestionTemplate(models.Model):
     text = models.CharField(max_length=200)
 
     def __str__(self):
         return f'{self.text}'
 
 
-class Answer(models.Model):
+class QuestionCandidate(models.Model):
     candidate = models.ForeignKey(Candidate, on_delete=models.CASCADE)
     question = models.CharField(max_length=200)
     text = models.TextField()

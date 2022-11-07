@@ -6,7 +6,7 @@ from .models import Candidate
 
 
 class AnswerInline(admin.TabularInline):
-    model = models.Answer
+    model = models.QuestionCandidate
 
 
 class DiplomaInline(admin.TabularInline):
@@ -20,5 +20,5 @@ class CandidateAdmin(admin.ModelAdmin):
 
 
 admin.site.register(models.Candidate, CandidateAdmin)
-admin.site.register(models.Question)
-admin.site.register(models.Answer)
+admin.site.register(models.QuestionTemplate)
+admin.site.register(models.QuestionCandidate)

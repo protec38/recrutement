@@ -6,7 +6,7 @@ from django.urls import reverse_lazy
 from django.views.generic import FormView, CreateView
 
 from .forms import DiplomaFormset, QuestionsFormset
-from .models import Candidate, Diploma, Question, Answer
+from .models import Candidate, Diploma, QuestionTemplate, QuestionCandidate
 
 
 class CandidateCreateView(CreateView):
@@ -34,10 +34,10 @@ class CandidateCreateView(CreateView):
         diploma_formset.instance = candidate
         diploma_formset.save()
 
-        questions = Question.objects.all()
+        questions = QuestionTemplate.objects.all()
 
         for q in questions:
-            Answer(candidate=candidate, question=q.text).save()
+            QuestionCandidate(candidate=candidate, question=q.text).save()
 
         self.request.session['candidate_id'] = candidate.id
 
