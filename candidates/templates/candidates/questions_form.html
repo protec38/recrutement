@@ -13,6 +13,9 @@
     {{ formset.management_form }}
     {% for form in formset %}
         <label for="{{ form.text.id_for_label }}">{{ form.question.value }}</label>{{ form.text }}{{ form.text.errors }}
+        {% for hidden in form.hidden_fields %}
+            {{ hidden }}
+        {% endfor %}
     {% endfor %}
     <input type="submit">
 </form>

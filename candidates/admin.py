@@ -5,7 +5,7 @@ from . import forms
 from .models import Candidate
 
 
-class AnswerInline(admin.TabularInline):
+class QuestionCandidateInline(admin.TabularInline):
     model = models.QuestionCandidate
 
 
@@ -15,8 +15,8 @@ class DiplomaInline(admin.TabularInline):
 
 class CandidateAdmin(admin.ModelAdmin):
     model = Candidate
-    fields = ['first_name', 'last_name', 'birth_date', 'email', 'question1', 'question2', 'question3']
-    inlines = [DiplomaInline]
+    fields = ['first_name', 'last_name', 'birth_date', 'email']
+    inlines = [DiplomaInline, QuestionCandidateInline]
 
 
 admin.site.register(models.Candidate, CandidateAdmin)

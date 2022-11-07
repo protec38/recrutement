@@ -1,5 +1,5 @@
 from django.forms import inlineformset_factory
-from django.http import HttpResponseForbidden, HttpResponseServerError
+from django.http import HttpResponseForbidden, HttpResponseServerError, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse_lazy
 
@@ -11,8 +11,8 @@ from .models import Candidate, Diploma, QuestionTemplate, QuestionCandidate
 
 class CandidateCreateView(CreateView):
     model = Candidate
-    fields = ['first_name', 'last_name', 'birth_date', 'email', 'question1', 'question2', 'question3']
-    success_url = reverse_lazy('candidates:confirmation')
+    fields = ['first_name', 'last_name', 'birth_date', 'email']
+    success_url = reverse_lazy('candidates:questions')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -44,18 +44,19 @@ class CandidateCreateView(CreateView):
         return super().form_valid(form)
 
 
-def answers(request):
+def questions(request):
     if 'candidate_id' not in request.session:
         return HttpResponseForbidden()
 
-    if request.method == 'GET':
-        candidate = Candidate.objects.get(id = request.session['candidate_id'])
+    candidate = Candidate.objects.get(id=request.session['candidate_id'])
 
+    if request.method == 'GET':
         formset = QuestionsFormset(instance=candidate)
     else:
-        formset = QuestionsFormset(request.POST)
-        print(request.POST)
+        formset = QuestionsFormset(request.POST, instance=candidate)
+
         if formset.is_valid():
-            print('Coucou')
+            formset.save()
+            return HttpResponseRedirect(reverse_lazy('candidates:confirmation'))
 
     return render(request, 'candidates/questions_form.html', context={'formset': formset})
