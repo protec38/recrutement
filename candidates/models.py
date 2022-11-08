@@ -1,11 +1,19 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+
 class Candidate(models.Model):
     first_name = models.CharField(max_length=100, verbose_name=_('Prénom'))
     last_name = models.CharField(max_length=100, verbose_name=_('Nom'))
     birth_date = models.DateField(verbose_name=_('Date de naissance'))
     email = models.EmailField(verbose_name=_('Courriel'))
+
+    class Status(models.TextChoices):
+        NEW = 'NEW', _('Nouveau')
+        COMPLETE = 'COMPLETE', _('Complet')
+        VALIDATED = 'VALIDATED', _('Validé')
+
+    status = models.CharField(choices=Status.choices, default=Status.NEW, max_length=100)
 
     class Meta:
         verbose_name = _('Candidat')
