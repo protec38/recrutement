@@ -16,35 +16,46 @@ class Candidate(models.Model):
 
 DIPLOMA_CHOICES = [
     ('Secourisme grand public', (
-            ('PSC1', 'PSC1 - Prévention et Secours Civiques de niveau 1'),
-            ('SST', 'SST - Sauveteur Secouriste du Travail')
-        )
-    ),
-    ('Secours opérationnel', (
-            ('PSE1', 'PSE1 - Premiers Secours en Equipe de niveau 1'),
-            ('PSE2', 'PSE2 - Premiers Secours en Equipe de niveau 2'),
-        )
-    ),
-    ('Formation', (
-            ('PAE FPS', "PAE FPS - Pédagogie Appliquée à l'emploi de Formateur Premiers Secours"),
-            ('PAE FPSC', "PAE FPSC - Pédagogie Appliquée à l'emploi de Formateur Prévention et Secours Civiques"),
-            ('PAE FF', "PAE FF - Pédagogie Appliquée à l'emploi de Formateur de Formateur"),
-            ('CEAF', "CEAF - Conception et Encadrement d'Activité de Formation"),
-        )
+        ('PSC1', 'PSC1 - Prévention et Secours Civiques de niveau 1'),
+        ('SST', 'SST - Sauveteur Secouriste du Travail')
     )
+     ),
+    ('Secours opérationnel', (
+        ('PSE1', 'PSE1 - Premiers Secours en Equipe de niveau 1'),
+        ('PSE2', 'PSE2 - Premiers Secours en Equipe de niveau 2'),
+    )
+     ),
+    ('Formation', (
+        ('PAE FPS', "PAE FPS - Pédagogie Appliquée à l'emploi de Formateur Premiers Secours"),
+        ('PAE FPSC', "PAE FPSC - Pédagogie Appliquée à l'emploi de Formateur Prévention et Secours Civiques"),
+        ('PAE FF', "PAE FF - Pédagogie Appliquée à l'emploi de Formateur de Formateur"),
+        ('CEAF', "CEAF - Conception et Encadrement d'Activité de Formation"),
+    )
+     )
 ]
+
+
+def user_directory_path(instance, filename):
+    return f'diploma/{instance.candidate.last_name} {instance.candidate.first_name}/{filename}'
 
 
 class Diploma(models.Model):
     candidate = models.ForeignKey(Candidate, on_delete=models.CASCADE, related_name='diploma')
-    type = models.CharField(choices=DIPLOMA_CHOICES, max_length=10, verbose_name=_('Type'), help_text="Seuls les diplômes reconnus par le ministère de l'Intérieur sont disponibles")
+    type = models.CharField(choices=DIPLOMA_CHOICES, max_length=10, verbose_name=_('Type'),
+                            help_text="Seuls les diplômes reconnus par le ministère de l'Intérieur sont disponibles")
     date = models.DateField(verbose_name=_("Date d'obtention"))
-    continuous_training_date = models.DateField(blank=True, null=True, verbose_name=_("Dernière formation continue"), help_text="Date de la dernière formation continue, si applicable")
-    diploma_file = models.FileField(verbose_name=_('Diplôme'), help_text=_('Fichiers acceptés *.pdf, *.jpg. Taille maximale XXX Go'))
-    continuous_training_file = models.FileField(blank=True, null=True, verbose_name=_('Attestation de formation continue'))
+    continuous_training_date = models.DateField(blank=True, null=True, verbose_name=_("Dernière formation continue"),
+                                                help_text="Date de la dernière formation continue, si applicable")
+    diploma_file = models.FileField(verbose_name=_('Diplôme'),
+                                    help_text=_('Fichiers acceptés *.pdf, *.jpg. Taille maximale XXX Go'),
+                                    upload_to=user_directory_path)
+    continuous_training_file = models.FileField(blank=True, null=True,
+                                                verbose_name=_('Attestation de formation continue'),
+                                                upload_to=user_directory_path)
 
     class Meta:
         verbose_name = _('Diplôme')
+
 
 class QuestionTemplate(models.Model):
     text = models.CharField(max_length=200)
