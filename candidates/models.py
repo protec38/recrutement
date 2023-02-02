@@ -1,8 +1,74 @@
+from datetime import datetime, timezone
+
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from django_transitions.workflow import StatusBase, StateMachineMixinBase
+from transitions import Machine
 
 
-class Candidate(models.Model):
+class CandidateStatus(StatusBase):
+    IN_CREATION = 'in_creation'
+    COMPLETED = 'completed'
+    COMPLETION_CONFIRMED = 'completion_confirmed'
+    MEETING_PROPOSED = 'meeting_proposed'
+    WAITING_MEETING = 'waiting_meeting'
+    WAITING_CANDIDATE = 'waiting_candidate'
+    CANDIDATE_CONFIRMED = 'candidate_confirmed'
+    REJECTED = 'rejected'
+    WAITING_CREATION = 'waiting_creation'
+    WAITING_TRAINING = 'waiting_training'
+    CLOSURE = 'closure'
+
+    STATE_CHOICES = (
+        (IN_CREATION, _("En cours de création")),
+        (COMPLETED, _("Dossier complété")),
+        (COMPLETION_CONFIRMED, _("Dossier complet")),
+        (MEETING_PROPOSED, _("Date d'entretien proposée")),
+        (WAITING_MEETING, _("En attente de l'entretien")),
+        (WAITING_CANDIDATE, _("En attente de retour du candidat")),
+        (CANDIDATE_CONFIRMED, _("En attente de retour du recrutement")),
+        (REJECTED, _("Candidature refusée")),
+        (WAITING_CREATION, _("En attente de la création des accès")),
+        (WAITING_TRAINING, _("En attente de l'ajout des compétences")),
+        (CLOSURE, _("Dossier clôturé")),
+    )
+
+    SM_STATES = [IN_CREATION, COMPLETED, COMPLETION_CONFIRMED, MEETING_PROPOSED, WAITING_MEETING, WAITING_CANDIDATE,
+                 CANDIDATE_CONFIRMED, REJECTED, WAITING_CREATION, WAITING_TRAINING, CLOSURE]
+    SM_INITIAL_STATE = IN_CREATION
+
+
+class LifecycleStateMachineMixin(StateMachineMixinBase):
+    """Lifecycle workflow state machine."""
+
+    status_class = CandidateStatus
+
+    machine = Machine(
+        model=None,
+        finalize_event='wf_finalize',
+        auto_transitions=False,
+        **status_class.get_kwargs()  # noqa: C815
+    )
+
+    @property
+    def state(self):
+        """Get the items workflowstate or the initial state if none is set."""
+        if self.state:
+            return self.state
+        return self.machine.initial
+
+    @state.setter
+    def state(self, value):
+        """Set the items workflow state."""
+        self.state = value
+        return self.state
+
+    def wf_finalize(self, *args, **kwargs):
+        """Run this on all transitions."""
+        self.update = datetime.now(timezone.utc)
+
+
+class Candidate(LifecycleStateMachineMixin, models.Model):
     first_name = models.CharField(max_length=100, verbose_name=_('Prénom'))
     last_name = models.CharField(max_length=100, verbose_name=_('Nom'))
     birth_date = models.DateField(verbose_name=_('Date de naissance'))
@@ -13,7 +79,9 @@ class Candidate(models.Model):
         COMPLETE = 'COMPLETE', _('Complet')
         VALIDATED = 'VALIDATED', _('Validé')
 
-    status = models.CharField(choices=Status.choices, default=Status.NEW, max_length=100)
+    status = models.CharField(choices=CandidateStatus.STATE_CHOICES, default=CandidateStatus.SM_INITIAL_STATE,
+                              max_length=100)
+    update = models.DateTimeField(verbose_name=_('Dernière mise à jour'), null=False, blank=False, default=datetime.now)
 
     class Meta:
         verbose_name = _('Candidat')

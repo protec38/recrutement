@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 django = "*"
+django_transitions = "*"
 
 [dev-packages]
 mypy = "*"
