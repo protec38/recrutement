@@ -15,6 +15,9 @@ class CandidateCreateView(CreateView):
     success_url = reverse_lazy('candidates:questions')
 
     def get_context_data(self, **kwargs):
+        """ Add the diploma formset to the context data in order to use it in the template.
+
+        """
         context = super().get_context_data(**kwargs)
 
         if self.request.POST:
@@ -34,21 +37,25 @@ class CandidateCreateView(CreateView):
         diploma_formset.instance = candidate
         diploma_formset.save()
 
-        questions = QuestionTemplate.objects.all()
-
-        for q in questions:
+        # After saving the candidate, adding the questions they need to answer to their profile
+        questions_templates = QuestionTemplate.objects.all()
+        for q in questions_templates:
             QuestionCandidate(candidate=candidate, question=q.text).save()
 
+        # Saving the candidate id in the session
         self.request.session['candidate_id'] = candidate.id
 
         return super().form_valid(form)
 
 
 def questions(request):
+    """ Allows the user to answer the questions assigned to them
+
+    """
     if 'candidate_id' not in request.session:
         return HttpResponseForbidden()
 
-    candidate = Candidate.objects.get(id=request.session['candidate_id'])
+    candidate = Candidate.objects.get(id=request.session['candidate_id'])  # FIXME: What happens if the id doesn't exist?
 
     if request.method == 'GET':
         formset = QuestionsFormset(instance=candidate)
