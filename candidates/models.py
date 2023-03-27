@@ -7,9 +7,9 @@ from transitions import Machine
 
 
 class CandidateStatus(StatusBase):
-    IN_CREATION = 'in_creation'
-    COMPLETED = 'completed'
-    COMPLETION_CONFIRMED = 'completion_confirmed'
+    RECORD_CREATED = 'record_created'
+    RECORD_COMPLETED = 'record_completed'
+    RECORD_ACCEPTED = 'record_accepted'
     MEETING_PROPOSED = 'meeting_proposed'
     WAITING_MEETING = 'waiting_meeting'
     WAITING_CANDIDATE = 'waiting_candidate'
@@ -20,9 +20,9 @@ class CandidateStatus(StatusBase):
     CLOSURE = 'closure'
 
     STATE_CHOICES = (
-        (IN_CREATION, _("En cours de création")),
-        (COMPLETED, _("Dossier complété")),
-        (COMPLETION_CONFIRMED, _("Dossier complet")),
+        (RECORD_CREATED, _("Dossier créé")),
+        (RECORD_COMPLETED, _("Dossier complété")),
+        (RECORD_ACCEPTED, _("Dossier complet")),
         (MEETING_PROPOSED, _("Date d'entretien proposée")),
         (WAITING_MEETING, _("En attente de l'entretien")),
         (WAITING_CANDIDATE, _("En attente de retour du candidat")),
@@ -33,12 +33,115 @@ class CandidateStatus(StatusBase):
         (CLOSURE, _("Dossier clôturé")),
     )
 
-    SM_STATES = [IN_CREATION, COMPLETED, COMPLETION_CONFIRMED, MEETING_PROPOSED, WAITING_MEETING, WAITING_CANDIDATE,
+    RECORD_COMPLETION = "record_completion"
+    RECORD_REJECTION = "record_rejection"
+    RECORD_ACCEPTION = "record_acception"
+    MEETING_PROPOSITION = "meeting_proposition"
+    MEETING_REJECTION = "meeting_rejection"
+    MEETING_ACCEPTION = "meeting_acception"
+    MEETING_ABSENCE = "meeting_absence"
+    MEETING_PRESENCE = "meeting_presence"
+    CANDIDATE_RESIGNATION = "candidate_resignation"
+    RECRUITER_REJECTION = "candidate_rejection"
+    CANDIDATE_CONFIRMATION = "candidate_confirmation"
+    RECRUITER_ACCEPTION = "candidate_acception"
+    ACCOUNT_CREATION = "account_creation"
+    CLOSING = "closing"
+    DESTRUCTION = "destruction"
+
+    TRANSITION_LABELS = {
+        RECORD_COMPLETION: {'label': _("Marquer comme complet")},
+        RECORD_REJECTION: {'label': _("Marquer comme incomplet")},
+        RECORD_ACCEPTION: {'label': _("Accepter le dossier")},
+        MEETING_PROPOSITION: {'label': _("Proposer un entretien")},
+        MEETING_REJECTION: {'label': _("Refuser la date d'entretien")},
+        MEETING_ACCEPTION: {'label': _("Accepter la date d'entretien")},
+        MEETING_ABSENCE: {'label': _("Absent à l'entretien")},
+        MEETING_PRESENCE: {'label': _("Présent à l'entretien")},
+        CANDIDATE_RESIGNATION: {'label': _("Renoncer à la candidature")},
+        RECRUITER_REJECTION: {'label': _("Rejeter la candidature")},
+        CANDIDATE_CONFIRMATION: {'label': _("Confirmer la candidature")},
+        RECRUITER_ACCEPTION: {'label': _("Accepter la candidature")},
+        ACCOUNT_CREATION: {'label': _("Compte créé")},
+        CLOSING: {'label': _("Clôre le dossier")},
+        DESTRUCTION: {'label': _("Destruction du dossier")},
+    }
+
+    SM_STATES = [RECORD_CREATED, RECORD_COMPLETED, RECORD_ACCEPTED, MEETING_PROPOSED, WAITING_MEETING, WAITING_CANDIDATE,
                  CANDIDATE_CONFIRMED, REJECTED, WAITING_CREATION, WAITING_TRAINING, CLOSURE]
-    SM_INITIAL_STATE = IN_CREATION
+    SM_INITIAL_STATE = RECORD_CREATED
+
+    SM_TRANSITIONS = [
+        {
+            'trigger': RECORD_COMPLETION,
+            'source': [RECORD_CREATED],
+            'dest': RECORD_COMPLETED
+        },
+        {
+            'trigger': RECORD_REJECTION,
+            'source': [RECORD_COMPLETED],
+            'dest': RECORD_CREATED
+        },
+        {
+            'trigger': RECORD_ACCEPTION,
+            'source': [RECORD_COMPLETED],
+            'dest': RECORD_ACCEPTED
+        },
+        {
+            'trigger': MEETING_PROPOSITION,
+            'source': [RECORD_ACCEPTED],
+            'dest': MEETING_PROPOSED
+        },
+        {
+            'trigger': MEETING_REJECTION,
+            'source': [MEETING_PROPOSED],
+            'dest': RECORD_ACCEPTED
+        },
+        {
+            'trigger': MEETING_ACCEPTION,
+            'source': [MEETING_PROPOSED],
+            'dest': WAITING_MEETING
+        },
+        {
+            'trigger': MEETING_ABSENCE,
+            'source': [WAITING_MEETING],
+            'dest': RECORD_ACCEPTED
+        },
+        {
+            'trigger': MEETING_PRESENCE,
+            'source': [WAITING_MEETING],
+            'dest': WAITING_CANDIDATE
+        },
+        {
+            'trigger': CANDIDATE_RESIGNATION,
+            'source': [WAITING_CANDIDATE],
+            'dest': CLOSURE
+        },
+        {
+            'trigger': CANDIDATE_CONFIRMATION,
+            'source': [WAITING_CANDIDATE],
+            'dest': CANDIDATE_CONFIRMED
+        },
+        {
+            'trigger': RECRUITER_ACCEPTION,
+            'source': [CANDIDATE_CONFIRMED],
+            'dest': WAITING_CREATION
+        },
+        {
+            'trigger': RECRUITER_REJECTION,
+            'source': [CANDIDATE_CONFIRMED],
+            'dest': REJECTED
+        },
+        {
+            'trigger': ACCOUNT_CREATION,
+            'source': [WAITING_CREATION],
+            'dest': WAITING_TRAINING
+        },
+
+    ]
 
 
-class LifecycleStateMachineMixin(StateMachineMixinBase):
+class CandidateStateMachineMixin(StateMachineMixinBase):
     """Lifecycle workflow state machine."""
 
     status_class = CandidateStatus
@@ -53,33 +156,27 @@ class LifecycleStateMachineMixin(StateMachineMixinBase):
     @property
     def state(self):
         """Get the items workflowstate or the initial state if none is set."""
-        if self.state:
-            return self.state
+        if self.status:
+            return self.status
         return self.machine.initial
 
     @state.setter
     def state(self, value):
         """Set the items workflow state."""
-        self.state = value
-        return self.state
+        self.status = value
 
     def wf_finalize(self, *args, **kwargs):
         """Run this on all transitions."""
         self.update = datetime.now(timezone.utc)
 
 
-class Candidate(LifecycleStateMachineMixin, models.Model):
+class Candidate(CandidateStateMachineMixin, models.Model):
     first_name = models.CharField(max_length=100, verbose_name=_('Prénom'))
     last_name = models.CharField(max_length=100, verbose_name=_('Nom'))
     birth_date = models.DateField(verbose_name=_('Date de naissance'))
     email = models.EmailField(verbose_name=_('Courriel'))
 
-    class Status(models.TextChoices):
-        NEW = 'NEW', _('Nouveau')
-        COMPLETE = 'COMPLETE', _('Complet')
-        VALIDATED = 'VALIDATED', _('Validé')
-
-    status = models.CharField(choices=CandidateStatus.STATE_CHOICES, default=CandidateStatus.SM_INITIAL_STATE,
+    status = models.CharField(verbose_name=_('Statut'), choices=CandidateStatus.STATE_CHOICES, default=CandidateStatus.SM_INITIAL_STATE,
                               max_length=100)
     update = models.DateTimeField(verbose_name=_('Dernière mise à jour'), null=False, blank=False, default=datetime.now)
 

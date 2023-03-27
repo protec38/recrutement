@@ -1,8 +1,8 @@
 from django.contrib import admin
+from django_transitions.admin import WorkflowAdminMixin
 
 from . import models
-from . import forms
-from .models import Candidate
+from .models import Candidate, CandidateStateMachineMixin, CandidateStatus
 
 
 class QuestionCandidateInline(admin.TabularInline):
@@ -20,11 +20,37 @@ class DiplomaInline(admin.TabularInline):
     extra = 0
 
 
-class CandidateAdmin(admin.ModelAdmin):
+class CandidateAdmin(WorkflowAdminMixin, admin.ModelAdmin):
     model = Candidate
     fields = ['first_name', 'last_name', 'birth_date', 'email']
+    list_filter = ['status']
+    list_display = ['first_name', 'last_name', 'status', 'update']
     inlines = [DiplomaInline, QuestionCandidateInline]
+
+    actions = ['tadada']
+
+    @admin.action(permissions=['change'])
+    def tadada(self):
+        ...
+
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        print(actions)
+        status_filter = request.GET.get("status__exact", None)
+        triggers = CandidateStateMachineMixin.machine.get_triggers(status_filter)
+        for trigger in triggers:
+            if self.has_delete_permission(request):  # TODO: change this permission to appropriate one
+                def trigger_fun(modeladmin, request, queryset):
+                    for candidate in queryset:
+                        getattr(candidate, trigger)()
+                        candidate.save()
+
+                actions[trigger] = (trigger_fun, trigger, CandidateStatus.TRANSITION_LABELS[trigger]['label'])
+
+        return actions
 
 
 admin.site.register(models.Candidate, CandidateAdmin)
 admin.site.register(models.QuestionTemplate)
+
+
