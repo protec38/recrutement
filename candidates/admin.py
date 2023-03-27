@@ -2,7 +2,8 @@ from django.contrib import admin
 from django_transitions.admin import WorkflowAdminMixin
 
 from . import models
-from .models import Candidate, CandidateStateMachineMixin, CandidateStatus
+from .models import Candidate
+from .state_machine import CandidateStatus, CandidateStateMachineMixin
 
 
 class QuestionCandidateInline(admin.TabularInline):
