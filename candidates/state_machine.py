@@ -69,6 +69,8 @@ class CandidateStatus(StatusBase):
         DESTRUCTION: {'label': _("Destruction du dossier")},
     }
 
+    permissions = {transition: label['label'] for transition, label in TRANSITION_LABELS.items()}
+
     SM_STATES = [RECORD_CREATED, RECORD_COMPLETED, RECORD_ACCEPTED, MEETING_PROPOSED, WAITING_MEETING, WAITING_CANDIDATE,
                  CANDIDATE_CONFIRMED, REJECTED, WAITING_CREATION, WAITING_TRAINING, CLOSURE]
     SM_INITIAL_STATE = RECORD_CREATED

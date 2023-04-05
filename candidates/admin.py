@@ -36,11 +36,11 @@ class CandidateAdmin(WorkflowAdminMixin, admin.ModelAdmin):
 
     def get_actions(self, request):
         actions = super().get_actions(request)
-        print(actions)
+
         status_filter = request.GET.get("status__exact", None)
         triggers = CandidateStateMachineMixin.machine.get_triggers(status_filter)
         for trigger in triggers:
-            if self.has_delete_permission(request):  # TODO: change this permission to appropriate one
+            if request.user.has_perm(trigger):
                 def trigger_fun(modeladmin, request, queryset):
                     for candidate in queryset:
                         getattr(candidate, trigger)()
