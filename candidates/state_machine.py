@@ -6,6 +6,8 @@ from transitions import Machine
 
 
 class CandidateStatus(StatusBase):
+
+    # States label
     RECORD_CREATED = 'record_created'
     RECORD_COMPLETED = 'record_completed'
     RECORD_ACCEPTED = 'record_accepted'
@@ -32,6 +34,7 @@ class CandidateStatus(StatusBase):
         (CLOSURE, _("Dossier clôturé")),
     )
 
+    # Transitions label
     RECORD_COMPLETION = "record_completion"
     RECORD_REJECTION = "record_rejection"
     RECORD_ACCEPTION = "record_acception"
@@ -74,69 +77,73 @@ class CandidateStatus(StatusBase):
         {
             'trigger': RECORD_COMPLETION,
             'source': [RECORD_CREATED],
-            'dest': RECORD_COMPLETED
+            'dest': RECORD_COMPLETED,
         },
         {
             'trigger': RECORD_REJECTION,
             'source': [RECORD_COMPLETED],
-            'dest': RECORD_CREATED
+            'dest': RECORD_CREATED,
         },
         {
             'trigger': RECORD_ACCEPTION,
             'source': [RECORD_COMPLETED],
-            'dest': RECORD_ACCEPTED
+            'dest': RECORD_ACCEPTED,
         },
         {
             'trigger': MEETING_PROPOSITION,
             'source': [RECORD_ACCEPTED],
-            'dest': MEETING_PROPOSED
+            'dest': MEETING_PROPOSED,
         },
         {
             'trigger': MEETING_REJECTION,
             'source': [MEETING_PROPOSED],
-            'dest': RECORD_ACCEPTED
+            'dest': RECORD_ACCEPTED,
         },
         {
             'trigger': MEETING_ACCEPTION,
             'source': [MEETING_PROPOSED],
-            'dest': WAITING_MEETING
+            'dest': WAITING_MEETING,
         },
         {
             'trigger': MEETING_ABSENCE,
             'source': [WAITING_MEETING],
-            'dest': RECORD_ACCEPTED
+            'dest': RECORD_ACCEPTED,
         },
         {
             'trigger': MEETING_PRESENCE,
             'source': [WAITING_MEETING],
-            'dest': WAITING_CANDIDATE
+            'dest': WAITING_CANDIDATE,
         },
         {
             'trigger': CANDIDATE_RESIGNATION,
             'source': [WAITING_CANDIDATE],
-            'dest': CLOSURE
+            'dest': CLOSURE,
         },
         {
             'trigger': CANDIDATE_CONFIRMATION,
             'source': [WAITING_CANDIDATE],
-            'dest': CANDIDATE_CONFIRMED
+            'dest': CANDIDATE_CONFIRMED,
         },
         {
             'trigger': RECRUITER_ACCEPTION,
             'source': [CANDIDATE_CONFIRMED],
-            'dest': WAITING_CREATION
+            'dest': WAITING_CREATION,
         },
         {
             'trigger': RECRUITER_REJECTION,
             'source': [CANDIDATE_CONFIRMED],
-            'dest': REJECTED
+            'dest': REJECTED,
         },
         {
             'trigger': ACCOUNT_CREATION,
             'source': [WAITING_CREATION],
-            'dest': WAITING_TRAINING
+            'dest': WAITING_TRAINING,
         },
-
+        {
+            'trigger': CLOSING,
+            'source': [REJECTED, WAITING_CREATION, WAITING_TRAINING],
+            'dest': CLOSURE,
+        },
     ]
 
 
