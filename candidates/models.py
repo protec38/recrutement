@@ -68,7 +68,7 @@ class Diploma(models.Model):
 
 
 class QuestionTemplate(models.Model):
-    text = models.CharField(max_length=200)
+    text = models.CharField(max_length=200, verbose_name="Texte de la question")
 
     def __str__(self):
         return f'{self.text}'
