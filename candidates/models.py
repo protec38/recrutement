@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from django.contrib.auth.models import User
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -7,6 +8,7 @@ from candidates.state_machine import CandidateStatus, CandidateStateMachineMixin
 
 
 class Candidate(CandidateStateMachineMixin, models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=100, verbose_name=_('Prénom'))
     last_name = models.CharField(max_length=100, verbose_name=_('Nom'))
     birth_date = models.DateField(verbose_name=_('Date de naissance'))
