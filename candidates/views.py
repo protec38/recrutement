@@ -3,16 +3,15 @@ from django.http import HttpResponseForbidden, HttpResponseServerError, HttpResp
 from django.shortcuts import render
 from django.urls import reverse_lazy
 
-from django.views.generic import FormView, CreateView
+from django.views.generic import FormView, CreateView, TemplateView
 
 from .forms import DiplomaFormset, QuestionsFormset
 from .models import Candidate, Diploma, QuestionTemplate, QuestionCandidate
 
-
 class CandidateCreateView(CreateView):
     model = Candidate
     fields = ['first_name', 'last_name', 'birth_date', 'email']
-    success_url = reverse_lazy('candidates:questions')
+    success_url = reverse_lazy('candidates:profile')
 
     def get_context_data(self, **kwargs):
         """ Add the diploma formset to the context data in order to use it in the template.
@@ -47,6 +46,9 @@ class CandidateCreateView(CreateView):
 
         return super().form_valid(form)
 
+
+class CandidateProfileView(TemplateView):
+    template_name = 'candidates/profile.html'
 
 def questions(request):
     """ Allows the user to answer the questions assigned to them
