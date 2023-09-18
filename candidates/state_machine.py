@@ -1,3 +1,4 @@
+import enum
 from datetime import datetime, timezone
 
 from django.utils.translation import gettext_lazy as _
@@ -7,32 +8,20 @@ from transitions import Machine
 
 class CandidateStatus(StatusBase):
 
-    # States label
-    RECORD_CREATED = 'record_created'
-    RECORD_COMPLETED = 'record_completed'
-    RECORD_ACCEPTED = 'record_accepted'
-    MEETING_PROPOSED = 'meeting_proposed'
-    WAITING_MEETING = 'waiting_meeting'
-    WAITING_CANDIDATE = 'waiting_candidate'
-    CANDIDATE_CONFIRMED = 'candidate_confirmed'
-    REJECTED = 'rejected'
-    WAITING_CREATION = 'waiting_creation'
-    WAITING_TRAINING = 'waiting_training'
-    CLOSURE = 'closure'
+    class States(enum.Enum):
+        RECORD_CREATED = _("Dossier créé")
+        RECORD_COMPLETED = _("Dossier complété")
+        RECORD_ACCEPTED = _("Dossier complet")
+        MEETING_PROPOSED = _("Date d'entretien proposée")
+        WAITING_MEETING = _("En attente de l'entretien")
+        WAITING_CANDIDATE = _("En attente de retour du candidat")
+        CANDIDATE_CONFIRMED = _("En attente de retour du recrutement")
+        REJECTED = _("Candidature refusée")
+        WAITING_CREATION = _("En attente de la création des accès")
+        WAITING_TRAINING = _("En attente de l'ajout des compétences")
+        CLOSURE = _("Dossier clôturé")
 
-    STATE_CHOICES = (
-        (RECORD_CREATED, _("Dossier créé")),
-        (RECORD_COMPLETED, _("Dossier complété")),
-        (RECORD_ACCEPTED, _("Dossier complet")),
-        (MEETING_PROPOSED, _("Date d'entretien proposée")),
-        (WAITING_MEETING, _("En attente de l'entretien")),
-        (WAITING_CANDIDATE, _("En attente de retour du candidat")),
-        (CANDIDATE_CONFIRMED, _("En attente de retour du recrutement")),
-        (REJECTED, _("Candidature refusée")),
-        (WAITING_CREATION, _("En attente de la création des accès")),
-        (WAITING_TRAINING, _("En attente de l'ajout des compétences")),
-        (CLOSURE, _("Dossier clôturé")),
-    )
+    STATE_CHOICES = [(state.name, state.value) for state in States]
 
     # Transitions label
     RECORD_COMPLETION = "record_completion"
@@ -71,80 +60,79 @@ class CandidateStatus(StatusBase):
 
     permissions = {transition: label['label'] for transition, label in TRANSITION_LABELS.items()}
 
-    SM_STATES = [RECORD_CREATED, RECORD_COMPLETED, RECORD_ACCEPTED, MEETING_PROPOSED, WAITING_MEETING, WAITING_CANDIDATE,
-                 CANDIDATE_CONFIRMED, REJECTED, WAITING_CREATION, WAITING_TRAINING, CLOSURE]
-    SM_INITIAL_STATE = RECORD_CREATED
+    SM_STATES = States
+    SM_INITIAL_STATE = States.RECORD_CREATED
 
     SM_TRANSITIONS = [
         {
             'trigger': RECORD_COMPLETION,
-            'source': [RECORD_CREATED],
-            'dest': RECORD_COMPLETED,
+            'source': [States.RECORD_CREATED],
+            'dest': States.RECORD_COMPLETED,
         },
         {
             'trigger': RECORD_REJECTION,
-            'source': [RECORD_COMPLETED],
-            'dest': RECORD_CREATED,
+            'source': [States.RECORD_COMPLETED],
+            'dest': States.RECORD_CREATED,
         },
         {
             'trigger': RECORD_ACCEPTION,
-            'source': [RECORD_COMPLETED],
-            'dest': RECORD_ACCEPTED,
+            'source': [States.RECORD_COMPLETED],
+            'dest': States.RECORD_ACCEPTED,
         },
         {
             'trigger': MEETING_PROPOSITION,
-            'source': [RECORD_ACCEPTED],
-            'dest': MEETING_PROPOSED,
+            'source': [States.RECORD_ACCEPTED],
+            'dest': States.MEETING_PROPOSED,
         },
         {
             'trigger': MEETING_REJECTION,
-            'source': [MEETING_PROPOSED],
-            'dest': RECORD_ACCEPTED,
+            'source': [States.MEETING_PROPOSED],
+            'dest': States.RECORD_ACCEPTED,
         },
         {
             'trigger': MEETING_ACCEPTION,
-            'source': [MEETING_PROPOSED],
-            'dest': WAITING_MEETING,
+            'source': [States.MEETING_PROPOSED],
+            'dest': States.WAITING_MEETING,
         },
         {
             'trigger': MEETING_ABSENCE,
-            'source': [WAITING_MEETING],
-            'dest': RECORD_ACCEPTED,
+            'source': [States.WAITING_MEETING],
+            'dest': States.RECORD_ACCEPTED,
         },
         {
             'trigger': MEETING_PRESENCE,
-            'source': [WAITING_MEETING],
-            'dest': WAITING_CANDIDATE,
+            'source': [States.WAITING_MEETING],
+            'dest': States.WAITING_CANDIDATE,
         },
         {
             'trigger': CANDIDATE_RESIGNATION,
-            'source': [WAITING_CANDIDATE],
-            'dest': CLOSURE,
+            'source': [States.WAITING_CANDIDATE],
+            'dest': States.CLOSURE,
         },
         {
             'trigger': CANDIDATE_CONFIRMATION,
-            'source': [WAITING_CANDIDATE],
-            'dest': CANDIDATE_CONFIRMED,
+            'source': [States.WAITING_CANDIDATE],
+            'dest': States.CANDIDATE_CONFIRMED,
         },
         {
             'trigger': RECRUITER_ACCEPTION,
-            'source': [CANDIDATE_CONFIRMED],
-            'dest': WAITING_CREATION,
+            'source': [States.CANDIDATE_CONFIRMED],
+            'dest': States.WAITING_CREATION,
         },
         {
             'trigger': RECRUITER_REJECTION,
-            'source': [CANDIDATE_CONFIRMED],
-            'dest': REJECTED,
+            'source': [States.CANDIDATE_CONFIRMED],
+            'dest': States.REJECTED,
         },
         {
             'trigger': ACCOUNT_CREATION,
-            'source': [WAITING_CREATION],
-            'dest': WAITING_TRAINING,
+            'source': [States.WAITING_CREATION],
+            'dest': States.WAITING_TRAINING,
         },
         {
             'trigger': CLOSING,
-            'source': [REJECTED, WAITING_CREATION, WAITING_TRAINING],
-            'dest': CLOSURE,
+            'source': [States.REJECTED, States.WAITING_CREATION, States.WAITING_TRAINING],
+            'dest': States.CLOSURE,
         },
     ]
 
@@ -158,7 +146,9 @@ class CandidateStateMachineMixin(StateMachineMixinBase):
         model=None,
         finalize_event='wf_finalize',
         auto_transitions=False,
-        **status_class.get_kwargs()  # noqa: C815
+        initial=CandidateStatus.SM_INITIAL_STATE,
+        states=CandidateStatus.SM_STATES,
+        transitions=CandidateStatus.SM_TRANSITIONS
     )
 
     @property
