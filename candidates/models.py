@@ -1,18 +1,23 @@
 from datetime import datetime
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from candidates.state_machine import CandidateStatus, CandidateStateMachineMixin
 
 
+class User(AbstractUser):
+    birth_date = models.DateField(verbose_name=_('Date de naissance'))
+    is_candidate = models.BooleanField(default=False)
+
+
 class Candidate(CandidateStateMachineMixin, models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    first_name = models.CharField(max_length=100, verbose_name=_('Prénom'))
-    last_name = models.CharField(max_length=100, verbose_name=_('Nom'))
-    birth_date = models.DateField(verbose_name=_('Date de naissance'))
-    email = models.EmailField(verbose_name=_('Courriel'))
+    # first_name = models.CharField(max_length=100, verbose_name=_('Prénom'))
+    # last_name = models.CharField(max_length=100, verbose_name=_('Nom'))
+    # birth_date = models.DateField(verbose_name=_('Date de naissance'))
+    # email = models.EmailField(verbose_name=_('Courriel'))
 
     status = models.CharField(verbose_name=_('Statut'), choices=CandidateStatus.STATE_CHOICES, default=CandidateStatus.SM_INITIAL_STATE,
                               max_length=100)
@@ -23,7 +28,7 @@ class Candidate(CandidateStateMachineMixin, models.Model):
         permissions = CandidateStatus.permissions.items()
 
     def __str__(self):
-        return f'{self.first_name} {self.last_name}'
+        return f'{self.user.first_name} {self.user.last_name}'
 
 
 DIPLOMA_CHOICES = [
