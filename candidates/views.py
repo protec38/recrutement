@@ -2,39 +2,51 @@ from django.forms import inlineformset_factory
 from django.http import HttpResponseForbidden, HttpResponseServerError, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse_lazy
+from django.utils.text import slugify
 
 from django.views.generic import FormView, CreateView, TemplateView
 
 from .forms import DiplomaFormset, QuestionsFormset
-from .models import Candidate, Diploma, QuestionTemplate, QuestionCandidate
+from .models import Candidate, Diploma, QuestionTemplate, QuestionCandidate, User
 
 class CandidateCreateView(CreateView):
-    model = Candidate
+    model = User
     fields = ['first_name', 'last_name', 'birth_date', 'email']
     success_url = reverse_lazy('candidates:profile')
 
-    def get_context_data(self, **kwargs):
-        """ Add the diploma formset to the context data in order to use it in the template.
-
-        """
-        context = super().get_context_data(**kwargs)
-
-        if self.request.POST:
-            context['diploma_formset'] = DiplomaFormset(self.request.POST, self.request.FILES)
-        else:
-            context['diploma_formset'] = DiplomaFormset()
-
-        return context
+    # def get_context_data(self, **kwargs):
+    #     """ Add the diploma formset to the context data in order to use it in the template.
+    #
+    #     """
+    #     context = super().get_context_data(**kwargs)
+    #
+    #     if self.request.POST:
+    #         context['diploma_formset'] = DiplomaFormset(self.request.POST, self.request.FILES)
+    #     else:
+    #         context['diploma_formset'] = DiplomaFormset()
+    #
+    #     return context
 
     def form_valid(self, form):
-        diploma_formset = DiplomaFormset(self.request.POST, self.request.FILES)
+        # diploma_formset = DiplomaFormset(self.request.POST, self.request.FILES)
 
-        if not diploma_formset.is_valid() or not form.is_valid():
+        # if not diploma_formset.is_valid() or not form.is_valid():
+        #     return self.form_invalid(form)
+
+        if not form.is_valid():
             return self.form_invalid(form)
 
-        candidate = form.save()
-        diploma_formset.instance = candidate
-        diploma_formset.save()
+        user = form.save(commit=False)
+
+        username = slugify(f"{user.first_name} {user.last_name}")
+        user.username = username
+        user.is_candidate = True
+
+        candidate = Candidate(user=user)
+        candidate.save()
+
+        # diploma_formset.instance = candidate
+        # diploma_formset.save()
 
         # After saving the candidate, adding the questions they need to answer to their profile
         questions_templates = QuestionTemplate.objects.all()
