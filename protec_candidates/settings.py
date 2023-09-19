@@ -89,6 +89,7 @@ AUTHENTICATION_BACKENDS = [
     "sesame.backends.ModelBackend",
 ]
 
+AUTH_USER_MODEL = "candidates.User"
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
